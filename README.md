@@ -123,3 +123,125 @@ passguard/
 │   └── img/
 ├── README.md
 └── composer.json        # If using Composer
+
+
+
+---
+
+### Diagram description for draw.io (what to build)
+
+Below is a **textual blueprint** you can follow directly in draw.io.
+
+#### 1. Main layers
+
+Create three horizontal layers (top to bottom):
+
+1. **Client (Browser)**  
+2. **Web Server (PHP App)**  
+3. **Database (SQL)**  
+
+You can use three big rectangles stacked vertically, each labeled with its layer name.
+
+---
+
+#### 2. Client layer (top)
+
+Inside the **Client** rectangle, add four rounded boxes:
+
+- **Box A: “Login / Register UI”**  
+  - Description: HTML forms, JS validation.
+
+- **Box B: “Credentials Management UI”**  
+  - Description: List, add, edit, delete credentials.
+
+- **Box C: “Password Generator (JS)”**  
+  - Description: Generates strong passwords, copy‑to‑clipboard.
+
+- **Box D: “Security Dashboard & Charts”**  
+  - Description: Displays score, distribution, weak/reused list (Chart.js).
+
+Connect all four boxes downward with arrows to the **Web Server** layer (they all talk to the back‑end).
+
+---
+
+#### 3. Web server layer (middle)
+
+Inside the **Web Server (PHP App)** rectangle, create these boxes:
+
+- **Box E: “Auth Controller”**  
+  - Handles login, logout, registration, session timeout.  
+  - Uses password hashing (`password_hash` / bcrypt).
+
+- **Box F: “Credential Controller (CRUD)”**  
+  - Endpoints for add / edit / view / delete credentials.
+
+- **Box G: “Security Service”**  
+  - Password strength scoring.  
+  - Checks against common‑password list.  
+  - Detects reused passwords.
+
+- **Box H: “Dashboard Service”**  
+  - Aggregates data for:
+    - Overall score (0–100).  
+    - Weak / medium / strong counts.  
+    - Weak / duplicated password lists.
+
+Draw arrows:
+
+- From **Auth Controller (E)** down to **Users table** in the DB.  
+- From **Credential Controller (F)** down to **Credentials table**.  
+- From **Security Service (G)** to **Credentials table** (reads passwords / metadata).  
+- From **Dashboard Service (H)** to **Credentials table** (aggregations).
+
+Also draw arrows from the **Client boxes**:
+
+- A → E (Login/Register UI → Auth Controller).  
+- B → F (Credentials UI → Credential Controller).  
+- C → F and G (Password Generator UI → Credential Controller & Security Service when saving).  
+- D → H (Dashboard UI → Dashboard Service).
+
+---
+
+#### 4. Database layer (bottom)
+
+Inside the **Database (SQL)** rectangle, use cylinder shapes:
+
+- **Cylinder 1: “users”**  
+  - Fields: `id`, `email`, `password_hash`, `created_at`, etc.
+
+- **Cylinder 2: “credentials”**  
+  - Fields: `id`, `user_id`, `site`, `login`, `password_encrypted`, `strength_score`, `created_at`, etc.
+
+Optionally:
+
+- **Cylinder 3: “common_passwords”**  
+  - Fields: `id`, `password` (top 1000+ common passwords).
+
+Connect:
+
+- **Auth Controller (E)** ↔ **users**.  
+- **Credential Controller (F)** ↔ **credentials**.  
+- **Security Service (G)** ↔ **credentials** and **common_passwords**.  
+- **Dashboard Service (H)** ↔ **credentials**.
+
+---
+
+#### 5. Security annotations
+
+Add small label boxes or callouts:
+
+- Near the arrow from **Client → Auth Controller**:  
+  - “HTTPS, POST requests, CSRF protection”.
+
+- Near **users.password_hash**:  
+  - “Stored with `password_hash` / bcrypt”.
+
+- Near **credentials.password_encrypted**:  
+  - “Encrypted or at least never plain text”.
+
+- Near **Security Service**:  
+  - “Strength scoring + reuse detection”.
+
+---
+
+If you want, I can next turn this into a step‑by‑step “Week 1 / Week 2 / Week 3” task plan mapped onto this diagram.
